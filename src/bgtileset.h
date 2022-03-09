@@ -78,6 +78,7 @@ public:
     int getActive_y() const;
     int getActive_tile() const;
     void setActive_tile(uint value);
+    int getActivePaletteNumber() const;
 
     void setActiveTileData(uint value, bool vFlip, bool hFlip, uint palette);
     void setActiveTilePixel(int x, int y, int value);

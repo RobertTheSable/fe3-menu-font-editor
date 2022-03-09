@@ -412,6 +412,12 @@ void BGTileSet::setActive_tile(uint value)
     }
 }
 
+int BGTileSet::getActivePaletteNumber() const
+{
+    int activeData = getActiveTileData();
+    return (activeData&0x1C00)>>10;
+}
+
 void BGTileSet::setActiveTileData(uint new_value, bool vFlip, bool hFlip, uint palette)
 {
     unsigned int value = new_value;

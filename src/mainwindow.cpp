@@ -453,6 +453,7 @@ void MainWindow::on_actionOpen_From_Files_triggered()
         std::vector<uchar> tileData = getDataFromBinaryFile(opendir.getTilesFile());
         std::vector<uchar> paletteData = getDataFromBinaryFile(opendir.getPaletteFile());
         m_Tileset = BGTileSet(tilesetData, tileData, paletteData, 256, 144, 2, 0x11B, 0, 0x20FE);
+
         ui->tileSetLabel->setEnabled(true);
         ui->zoomBGTileSpinBox->setEnabled(true);
         ui->actionExport->setEnabled(true);
@@ -460,6 +461,8 @@ void MainWindow::on_actionOpen_From_Files_triggered()
         ui->actionRedo->setEnabled(true);
         ui->actionUndo->setEnabled(true);
         ui->actionExport_PNG->setEnabled(true);
+        ui->tilePalletteSpinBox->setValue(m_Tileset.getActivePaletteNumber());
+
         updateDisplayData();
         updatePaletteDisplay();
     }

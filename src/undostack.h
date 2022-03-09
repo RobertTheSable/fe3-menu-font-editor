@@ -8,7 +8,7 @@ namespace UndoStack {
     static const int TILE_EDIT  = 0b000000001;
     static const int PIXEL_EDIT = 0b000000100;
 //    static const int ACTIVE_DATA  = 0b100000000;
-    struct UndoEntry{
+    struct UndoEntry {
         int data_type;
         unsigned int change_index;
         std::vector<unsigned char> data;
