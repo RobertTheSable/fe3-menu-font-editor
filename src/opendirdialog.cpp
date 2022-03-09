@@ -27,11 +27,6 @@ QString OpenDirDialog::getTilesFile()
     return ui->tileFilelineEdit->text();
 }
 
-QString OpenDirDialog::getExtraTilesFile()
-{
-    return ui->extraTilesLineEdit->text();
-}
-
 QString OpenDirDialog::getPaletteFile()
 {
     return ui->paletteFileLineEdit->text();
@@ -51,15 +46,6 @@ void OpenDirDialog::on_chooseTilesButton_clicked()
     QString filename = QFileDialog::getOpenFileName(this, "Open Tiles", QDir::currentPath());
     if (filename != "") {
         ui->tileFilelineEdit->setText(filename);
-    }
-    UpdateAcceptButton();
-}
-
-void OpenDirDialog::on_chooseExtraTilesButton_clicked()
-{
-    QString filename = QFileDialog::getOpenFileName(this, "Open Extra Tiles", QDir::currentPath());
-    if (filename != "") {
-        ui->extraTilesLineEdit->setText(filename);
     }
     UpdateAcceptButton();
 }

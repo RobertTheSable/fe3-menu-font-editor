@@ -16,7 +16,6 @@ ExportBinDialog::ExportBinDialog(QWidget *parent) :
     tileset_bin = tr("");
     tiles_bin = tr("");
     palette_bin = tr("");
-    extra_tiles_bin = tr("");
 }
 
 ExportBinDialog::~ExportBinDialog()
@@ -40,37 +39,14 @@ void ExportBinDialog::on_pushButton_clicked()
         ui->rawTileLineEdit->setEnabled(true);
         ui->tilesCheckBox->setEnabled(true);
 
-        if(exportExtraTiles)
-        {
-            ui->extraTilesLineEdit->setEnabled(true);
-            ui->extraTilesCheckBox->setEnabled(true);
-        }
         ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
     }
 
 }
 
-void ExportBinDialog::setExportExtraTiles(bool value)
-{
-    exportExtraTiles = value;
-    if(value)
-    {
-        ui->extraTilesCheckBox->setChecked(true);
-    }
-    else
-    {
-        ui->extraTilesCheckBox->setChecked(false);
-    }
-}
-
 bool ExportBinDialog::getSaveAddresses() const
 {
     return saveAddresses;
-}
-
-QString ExportBinDialog::getExtra_tiles_bin() const
-{
-    return extra_tiles_bin;
 }
 
 QString ExportBinDialog::getPalette_bin() const
@@ -124,13 +100,5 @@ void ExportBinDialog::on_buttonBox_clicked(QAbstractButton *button)
     else
     {
         palette_bin = ui->directoryLineEdit->text()+ QDir::separator() + ui->paletteLineEdit->text();
-    }
-    if(!ui->extraTilesCheckBox->isChecked())
-    {
-        extra_tiles_bin = tr("");
-    }
-    else
-    {
-        extra_tiles_bin = ui->directoryLineEdit->text()+ QDir::separator() + ui->extraTilesLineEdit->text();
     }
 }

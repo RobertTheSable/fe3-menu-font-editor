@@ -25,8 +25,6 @@ private slots:
 
     void on_chooseTilesButton_clicked();
 
-    void on_chooseExtraTilesButton_clicked();
-
     void on_choosePaletteButton_clicked();
 
 private:

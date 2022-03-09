@@ -7,16 +7,21 @@
 class TileSetLabel : public QLabel {
     Q_OBJECT
 public:
-    explicit TileSetLabel(QWidget* parent = Q_NULLPTR, Qt::WindowFlags f = Qt::WindowFlags());
+    explicit TileSetLabel(
+        QWidget* parent = Q_NULLPTR,
+        Qt::WindowFlags f = Qt::WindowFlags()
+    );
     ~TileSetLabel();
-    void setUnitSize(int usize);
+    void setYUnitSize(int usize);
+    void setXUnitSize(int usize);
+    void setUnitSizes(int x, int y);
     int getScale() const;
     void setScale(int value);
 
     bool getMouse_held() const;
 
 private:
-    int unit_size;
+    int x_unit_size, y_unit_size;
     int scale;
     int clicked_x, clicked_y;
     bool mouse_held;

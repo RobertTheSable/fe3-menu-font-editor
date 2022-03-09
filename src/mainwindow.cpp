@@ -9,6 +9,32 @@
 #include <QStandardPaths>
 #include <vector>
 
+void copyQByteArrayToVector(const QByteArray& byteArray, std::vector<uchar>& vector)
+{
+    std::copy(byteArray.begin(), byteArray.end(), std::back_inserter(vector));
+}
+
+//BGTileSet testTileset()
+//{
+//    QFile tilesetFile("/home/robert/QT/tileset.bin");
+//    tilesetFile.open(QIODevice::ReadOnly);
+//    QFile tilesFile("/home/robert/QT/tiles.bin");
+//    tilesFile.open(QIODevice::ReadOnly);
+//    QFile palettes("/home/robert/QT/palettes.bin");
+//    palettes.open(QIODevice::ReadOnly);
+//    std::vector<uchar> tilesetContent, tilesContent, paletteContent;
+//    copyQByteArrayToVector(tilesetFile.readAll(), tilesetContent);
+//    copyQByteArrayToVector(tilesFile.readAll(), tilesContent);
+//    copyQByteArrayToVector(palettes.readAll(), paletteContent);
+
+//    auto tileset = BGTileSet(tilesetContent, tilesContent, paletteContent, 256, 144, 2, 0x11B, 0, 0x20FE);
+//    auto pixmap = tileset.getTileSetPixmap(8, false);
+//    QFile picFile("/home/robert/QT/test.png");
+//    picFile.open(QIODevice::WriteOnly);
+//    pixmap.save(&picFile, "PNG");
+//    return tileset;
+//}
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
@@ -18,15 +44,14 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    current_chapter = -1;
-    ui->tileEditLabel->setUnitSize(8);
+    ui->tileEditLabel->setUnitSizes(8, 8);
     ui->tileEditLabel->setScale(4);
-    ui->rawTileEditLabel->setUnitSize(1);
+    ui->rawTileEditLabel->setUnitSizes(1, 1);
     ui->rawTileEditLabel->setScale(ui->zoomBGTileSpinBox->value());
-    ui->rawTilesLabel->setUnitSize(8);
+    ui->rawTilesLabel->setUnitSizes(8, 8);
     ui->rawTilesLabel->setScale(2);
     ui->paletteLabel->setScale(3);
-    ui->paletteLabel->setUnitSize(8);
+    ui->paletteLabel->setUnitSizes(8, 8);
     connect(ui->tileSetLabel, &TileSetLabel::clicked, this, &MainWindow::setTileFocus);
     connect(ui->tileEditLabel, &TileSetLabel::clicked, this, &MainWindow::setBGTileFromQuadrant);
     connect(ui->rawTilesLabel, &TileSetLabel::double_clicked, this, &MainWindow::selectTileFromBank);
@@ -34,6 +59,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->rawTileEditLabel, &TileSetLabel::clicked, this, &MainWindow::editActiveTile);
     connect(ui->rawTilesLabel, &TileSetLabel::released, this, &MainWindow::dragBGTile);
     connect(ui->tileSetLabel, &TileSetLabel::released, this, &MainWindow::dragMainTile);
+
 }
 
 MainWindow::~MainWindow()
@@ -45,14 +71,14 @@ void MainWindow::show()
 {
     QMainWindow::show();
     auto iniPath = QStandardPaths::locate(QStandardPaths::AppDataLocation, INI_DIR, QStandardPaths::LocateDirectory);
-    if (iniPath == "") {
-        QMessageBox::critical(
-                    NULL,
-                    tr("Error"),
-                    tr("The ini folder was not found - this folder is needed for the application to function.")
-                    );
-        close();
-    }
+//    if (iniPath == "") {
+//        QMessageBox::critical(
+//                    NULL,
+//                    tr("Error"),
+//                    tr("The ini folder was not found - this folder is needed for the application to function.")
+//                    );
+//        close();
+//    }
 }
 
 void MainWindow::on_actionOpen_triggered()
@@ -60,51 +86,23 @@ void MainWindow::on_actionOpen_triggered()
     QString filename = QFileDialog::getOpenFileName(this, "Open ROM", QDir::currentPath(), tr("SNES Roms (*.sfc *.smc)"));
     if(filename != "")
     {
-        while (!m_Tilesets.empty()) {
-            m_Tilesets.pop_back();
-        }
         std::string text = filename.toStdString();
         auto iniPath = QStandardPaths::locate(QStandardPaths::AppDataLocation, INI_DIR, QStandardPaths::LocateDirectory);
         m_RomMap = RomMap(text, iniPath.toStdString());
         if(m_RomMap.getMyState() == RomMap::rom_ok)
         {
-            for(int i = 0; i < 37; i++)
-            {
-                int read_address = m_RomMap.getAddress("CHAPTER_DATA_TABLE") + (i<<1);
-                read_address = m_RomMap.getAddress("CHAPTER_DATA_BANK") + (m_RomMap.readAddress(read_address)&0xFFFF);
-
-                uchar *chapter_tileset, *chapter_BGData, *chapter_BGData2, *chapter_palette;
-
-                if((m_RomMap.readAddress(read_address+0x2E)) == 0)
-                {
-                    chapter_tileset = &m_RomMap[m_RomMap.readAddress(read_address+9)];
-                    chapter_BGData = &m_RomMap[m_RomMap.readAddress(read_address)];
-                    chapter_BGData2 = nullptr;
-                    chapter_palette = &m_RomMap[m_RomMap.readAddress(read_address+0xC)+0x60];
-                }
-                else
-                {
-                    chapter_tileset = &m_RomMap[m_RomMap.readAddress(read_address+9)];
-                    chapter_BGData = &m_RomMap[m_RomMap.readAddress(read_address)];
-                    chapter_BGData2 = &m_RomMap[m_RomMap.readAddress(read_address+0x2E)];
-                    chapter_palette = &m_RomMap[m_RomMap.readAddress(read_address+0xC)+0x60];
-                }
-                m_Tilesets.push_back(BGTileSet(&m_RomMap[0x808000], chapter_tileset,chapter_BGData,chapter_palette,chapter_BGData2));
-            }
-            ui->chapterSetButton->setEnabled(true);
+            std::vector<uchar> tilesetContent, tilesContent, paletteContent;
+            m_Tileset = BGTileSet(tilesetContent, tilesContent, paletteContent, 256, 144, 2, 0x11B, 0, 0x20FE);
             ui->tileSetLabel->setEnabled(true);
-            ui->chapterSpinBox->setEnabled(true);
-            ui->chapterSpinBox->setMaximum(m_Tilesets.size());
-            ui->chapterSpinBox->setValue(m_Tilesets.size());
-            ui->chapterSetButton->setEnabled(true);
             ui->zoomBGTileSpinBox->setEnabled(true);
             ui->actionExport->setEnabled(true);
             ui->actionHighlight_Same_BG_Tile->setEnabled(true);
             ui->actionRedo->setEnabled(true);
             ui->actionUndo->setEnabled(true);
             ui->actionOpen_From_Files->setEnabled(false);
+            ui->actionOpen->setEnabled(false);
             ui->actionExport_PNG->setEnabled(true);
-            updateChapterData();
+            updateDisplayData();
             updatePaletteDisplay();
         }
         else
@@ -133,10 +131,10 @@ void MainWindow::on_actionOpen_triggered()
 void MainWindow::setTileFocus(int x, int y)
 {
     switching = true;
-    if(x < 32 && y < 32)
+    if(x < 32 && y < 9)
     {
         int index = y*32 +x;
-        m_Tilesets[ui->chapterSpinBox->value()-1].setActive_tile(index);
+        m_Tileset.setActive_tile(index);
         updateBGTileDisplay();
         updateTileDisplay();
         updateBGTilesetDisplay();
@@ -147,7 +145,7 @@ void MainWindow::setTileFocus(int x, int y)
 void MainWindow::selectTileFromBank(int x, int y)
 {
     int tile_index = x+(y*16);
-    m_Tilesets[ui->chapterSpinBox->value()-1].setActiveTileData(tile_index, ui->tileVFlipCheckBox->isChecked(), ui->tileHFlipCheckBox->isChecked(), ui->tilePalletteSpinBox->value());
+    m_Tileset.setActiveTileData(tile_index, ui->tileVFlipCheckBox->isChecked(), ui->tileHFlipCheckBox->isChecked(), ui->tilePalletteSpinBox->value());
     updateTileDisplay();
     updateBGTileDisplay();
     updateBGTilesetDisplay();
@@ -157,9 +155,9 @@ void MainWindow::selectTileFromBank(int x, int y)
 void MainWindow::setBGTileFromQuadrant(int x, int y)
 {
     switching = true;
-    if(x < 2 && y < 2)
+    if(x < 1 && y < 2)
     {
-        m_Tilesets[ui->chapterSpinBox->value()-1].setActiveQuarter(x,y);
+        m_Tileset.setActiveQuarter(x,y);
         updateBGTileDisplay();
         updateTilesetDisplay();
         updateBGTilesetDisplay();
@@ -171,7 +169,7 @@ void MainWindow::editActiveTile(int x, int y)
 {
     if(x < 8 && y < 8)
     {
-        m_Tilesets[ui->chapterSpinBox->value()-1].setActiveTilePixel(x,y,current_palette_color);
+        m_Tileset.setActiveTilePixel(x,y,current_palette_color);
         updateBGTilesetDisplay();
         updateTileDisplay();
         updateBGTileDisplay();
@@ -187,9 +185,9 @@ void MainWindow::selectColor(int x, int y)
 
 void MainWindow::dragBGTile(int old_x, int old_y, int new_x, int new_y)
 {
-    m_Tilesets[current_chapter-1].copyBGTile(old_x + (old_y*16), new_x + (new_y*16));
+    m_Tileset.copyBGTile(old_x + (old_y*16), new_x + (new_y*16));
     updateBGTilesetDisplay();
-    m_Tilesets[current_chapter-1].setActive_tile(m_Tilesets[current_chapter-1].getActive_tile());
+    m_Tileset.setActive_tile(m_Tileset.getActive_tile());
     updateTilesetDisplay();
     updateTileDisplay();
     updateBGTileDisplay();
@@ -197,7 +195,7 @@ void MainWindow::dragBGTile(int old_x, int old_y, int new_x, int new_y)
 
 void MainWindow::dragMainTile(int old_x, int old_y, int new_x, int new_y)
 {
-    m_Tilesets[current_chapter-1].copyTile(old_x + (old_y*32), new_x + (new_y*32));
+    m_Tileset.copyTile(old_x + (old_y*32), new_x + (new_y*32));
     updateBGTilesetDisplay();
     updateTilesetDisplay();
     updateTileDisplay();
@@ -206,43 +204,20 @@ void MainWindow::dragMainTile(int old_x, int old_y, int new_x, int new_y)
 
 void MainWindow::on_chapterSetButton_clicked()
 {
-    updateChapterData();
+    updateDisplayData();
 }
 
 void MainWindow::on_chapterSpinBox_editingFinished()
 {
-    updateChapterData();
+    updateDisplayData();
 }
 
-void MainWindow::updateChapterData()
+void MainWindow::updateDisplayData()
 {
-    if(ui->chapterSpinBox->value() != current_chapter)
-    {
-        current_chapter = ui->chapterSpinBox->value();
-        m_Tilesets[current_chapter-1].setBgHighlightColor(highlightColor);
-        BGTileSet tileset = m_Tilesets[current_chapter-1];
-        //ui->tileSetLabel->setPixmap(tileset.getTileSetPixmap(1));
-        ui->tilesetAddressDisplay->setEnabled(true);
-        ui->tilesetAddressDisplay->setText(QString::number(tileset.getTilesetAddress(),16));
-        ui->paletteAddressDisplay->setEnabled(true);
-        ui->paletteAddressDisplay->setText(QString::number(tileset.getPaletteAddress(), 16));
-        ui->bgTileAddressDisplay->setEnabled(true);
-        ui->bgTileAddressDisplay->setText(QString::number(tileset.getBGTilesAddress(), 16));
-        if(tileset.getExtraTilesAddress() != 0)
-        {
-            ui->extraTileAddressDisplay->setEnabled(true);
-            ui->extraTileAddressDisplay->setText(QString::number(tileset.getExtraTilesAddress(), 16));
-        }
-        else
-        {
-            ui->extraTileAddressDisplay->setEnabled(false);
-            ui->extraTileAddressDisplay->setText(tr(""));
-        }
-        updateTilesetDisplay();
-        updateBGTilesetDisplay();
-        updateTileDisplay();
-        updateBGTileDisplay();
-    }
+    updateTilesetDisplay();
+    updateBGTilesetDisplay();
+    updateTileDisplay();
+    updateBGTileDisplay();
 }
 
 void MainWindow::updateTileDisplay()
@@ -252,14 +227,14 @@ void MainWindow::updateTileDisplay()
     ui->tileNumberEdit->setEnabled(true);
     ui->tileHFlipCheckBox->setEnabled(true);
     ui->tileVFlipCheckBox->setEnabled(true);
-    ui->tileEditLabel->setPixmap(m_Tilesets[ui->chapterSpinBox->value()-1].getActiveTilePixmap(ui->tileEditLabel->getScale()));
-    ui->tileSetLabel->setPixmap(m_Tilesets[ui->chapterSpinBox->value()-1].getTileSetPixmap(1));
+    ui->tileEditLabel->setPixmap(m_Tileset.getActiveTilePixmap(ui->tileEditLabel->getScale()));
+    ui->tileSetLabel->setPixmap(m_Tileset.getTileSetPixmap(2));
 }
 
 void MainWindow::updateBGTileDisplay(bool reload)
 {
     if(reload) {
-        int tile_data = m_Tilesets[ui->chapterSpinBox->value()-1].getActiveTileData();//getTileData(index, x, y);
+        int tile_data = m_Tileset.getActiveTileData();//getTileData(index, x, y);
         int tile_num = tile_data&0x03FF;
         int palette_num = (tile_data&0x1C00)>>10;
         bool vFlip = (tile_data&0x8000)!= 0;
@@ -269,30 +244,27 @@ void MainWindow::updateBGTileDisplay(bool reload)
         ui->tileHFlipCheckBox->setChecked(hFlip);
         ui->tileVFlipCheckBox->setChecked(vFlip);
     }
-    ui->rawTileEditLabel->setPixmap(m_Tilesets[ui->chapterSpinBox->value()-1].getActiveTilePixmap(ui->rawTileEditLabel->getScale(), false));//getBGTilePixmap(tile_num,vFlip, hFlip,palette_num, ui->rawTileEditLabel->getScale()));
+    ui->rawTileEditLabel->setPixmap(m_Tileset.getActiveTilePixmap(ui->rawTileEditLabel->getScale(), false));//getBGTilePixmap(tile_num,vFlip, hFlip,palette_num, ui->rawTileEditLabel->getScale()));
 }
 
 void MainWindow::updateTilesetDisplay()
 {
-    current_chapter = ui->chapterSpinBox->value();
-    ui->tileSetLabel->setPixmap(m_Tilesets[current_chapter-1].getTileSetPixmap(1));
+    ui->tileSetLabel->setPixmap(m_Tileset.getTileSetPixmap(2));
 }
 
 void MainWindow::updateBGTilesetDisplay()
 {
     int current_palette = ui->tilePalletteSpinBox->value();
-    current_chapter = ui->chapterSpinBox->value();
-    BGTileSet tileset = m_Tilesets[current_chapter-1];
-    ui->rawTilesLabel->setPixmap(tileset.getBGTilesPixmap(false, false, current_palette, ui->rawTilesLabel->getScale()));
+    ui->rawTilesLabel->setPixmap(m_Tileset.getBGTilesPixmap(false, false, current_palette, ui->rawTilesLabel->getScale()));
 }
 
 void MainWindow::updatePaletteDisplay()
 {
     int current_palette = ui->tilePalletteSpinBox->value();
-    ui->paletteLabel->setPixmap(m_Tilesets[current_chapter-1].getPalettePixmap(current_palette,ui->paletteLabel->getScale()));
+    ui->paletteLabel->setPixmap(m_Tileset.getPalettePixmap(current_palette,ui->paletteLabel->getScale()));
     QPixmap palette_color = QPixmap(48,48);
     QPainter p(&palette_color);
-    p.fillRect(0,0,48,48,m_Tilesets[current_chapter-1].getPaletteColor(current_palette,current_palette_color));
+    p.fillRect(0,0,48,48,m_Tileset.getPaletteColor(current_palette,current_palette_color));
     p.drawRect(0,0,47,47);
     ui->selectedColorLabel->setPixmap(palette_color);
 
@@ -301,7 +273,6 @@ void MainWindow::updatePaletteDisplay()
 void MainWindow::on_actionExport_triggered()
 {
     ExportBinDialog export_dialogue;
-    export_dialogue.setExportExtraTiles(ui->extraTileAddressDisplay->isEnabled());
     if(export_dialogue.exec() == QDialog::Accepted)
     {
         //QMessageBox::information(this, tr("Test"),export_dialogue.getExtra_tiles_bin());
@@ -315,9 +286,9 @@ void MainWindow::on_actionExport_triggered()
             }
             else
             {
-                uchar* output = new uchar[m_Tilesets[current_chapter-1].getTileSetSize()];
-                m_Tilesets[current_chapter-1].exportData(BGTileSet::TILESET_MODE, output);
-                outfile.write((char*)output, m_Tilesets[current_chapter-1].getTileSetSize());
+                uchar* output = new uchar[m_Tileset.getTileSetSize()];
+                m_Tileset.exportData(BGTileSet::TILESET_MODE, output);
+                outfile.write((char*)output,m_Tileset.getTileSetSize());
                 outfile.flush();
                 outfile.close();
                 delete[] output;
@@ -333,9 +304,9 @@ void MainWindow::on_actionExport_triggered()
             }
             else
             {
-                uchar* output = new uchar[m_Tilesets[current_chapter-1].getBGTileSize1()];
-                m_Tilesets[current_chapter-1].exportData(BGTileSet::TILE_MODE, output);
-                outfile.write((char*)output, m_Tilesets[current_chapter-1].getBGTileSize1());
+                uchar* output = new uchar[m_Tileset.getBGTileSize()];
+                m_Tileset.exportData(BGTileSet::TILE_MODE, output);
+                outfile.write((char*)output, m_Tileset.getBGTileSize());
                 outfile.flush();
                 outfile.close();
                 delete[] output;
@@ -352,59 +323,14 @@ void MainWindow::on_actionExport_triggered()
             }
             else
             {
-                uchar* output = new uchar[32*5];
-                m_Tilesets[current_chapter-1].exportData(BGTileSet::PALETTE_MODE, output);
-                outfile.write((char*)output, 32*5);
+                uint paletteSize = 512;
+                uchar* output = new uchar[paletteSize];
+                m_Tileset.exportData(BGTileSet::PALETTE_MODE, output);
+                outfile.write((char*)output, paletteSize);
                 outfile.flush();
                 outfile.close();
                 delete[] output;
             }
-        }
-        if(export_dialogue.getExtra_tiles_bin() != "")
-        {
-            QString filename = export_dialogue.getExtra_tiles_bin();
-            QFile outfile(filename);
-            if(!outfile.open(QFile::WriteOnly))
-            {
-                QMessageBox::warning(this, tr("Error opening file"),tr("Could not open ") + filename + tr(" for writing."));
-            }
-            else
-            {
-                uchar* output = new uchar[m_Tilesets[current_chapter-1].getBGTileSize2()+2];
-                m_Tilesets[current_chapter-1].exportData(BGTileSet::EXTRA_TILE_MODE, output);
-                outfile.write((char*)output, m_Tilesets[current_chapter-1].getBGTileSize2()+2);
-                outfile.flush();
-                outfile.close();
-                delete[] output;
-            }
-        }
-        if(export_dialogue.getSaveAddresses())
-        {
-            QString filename = export_dialogue.getWrite_directory() + QDir::separator() + tr("addresses.txt");
-            QFile outfile(filename);
-            if(!outfile.open(QFile::WriteOnly|QFile::Text))
-            {
-                QMessageBox::warning(this, tr("Error opening file"),tr("Could not open ") + filename + tr(" for writing."));
-            }
-            QTextStream address_out(&outfile);
-            address_out.setIntegerBase(16);
-            if(export_dialogue.getTileset_bin()!= "")
-            {
-                address_out << "Tileset Address: $"  << m_Tilesets[current_chapter-1].getTilesetAddress() << endl;
-            }
-            if(export_dialogue.getTiles_bin() != "")
-            {
-                address_out << "Raw Tiles Address: $"  << m_Tilesets[current_chapter-1].getBGTilesAddress() << endl;
-            }
-            if(export_dialogue.getExtra_tiles_bin() != "")
-            {
-                address_out << "Extra Tiles Address: $"  << m_Tilesets[current_chapter-1].getExtraTilesAddress() << endl;
-            }
-            if(export_dialogue.getPalette_bin() != "")
-            {
-                address_out << "Palette Address: $"  << m_Tilesets[current_chapter-1].getPaletteAddress() << endl;
-            }
-            outfile.close();
         }
     }
 }
@@ -425,7 +351,7 @@ void MainWindow::on_actionHighlight_Same_BG_Tile_toggled(bool arg1)
     {
         highlightColor = QColor(0,0,0,0);
     }
-    m_Tilesets[current_chapter-1].setBgHighlightColor(highlightColor);
+    m_Tileset.setBgHighlightColor(highlightColor);
     updateTilesetDisplay();
 }
 
@@ -433,7 +359,7 @@ void MainWindow::on_tileVFlipCheckBox_toggled(bool checked)
 {
     if(!switching)
     {
-        m_Tilesets[ui->chapterSpinBox->value()-1].setActiveTileData(ui->tileNumberEdit->text().toInt()-0x80,checked, ui->tileHFlipCheckBox->isChecked(), ui->tilePalletteSpinBox->value());
+        m_Tileset.setActiveTileData(ui->tileNumberEdit->text().toInt(),checked, ui->tileHFlipCheckBox->isChecked(), ui->tilePalletteSpinBox->value());
         updateBGTileDisplay();
         updateTileDisplay();
         updateTilesetDisplay();
@@ -444,7 +370,7 @@ void MainWindow::on_tileHFlipCheckBox_toggled(bool checked)
 {
     if(!switching)
     {
-        m_Tilesets[ui->chapterSpinBox->value()-1].setActiveTileData(ui->tileNumberEdit->text().toInt()-0x80, ui->tileVFlipCheckBox->isChecked(), checked, ui->tilePalletteSpinBox->value());
+        m_Tileset.setActiveTileData(ui->tileNumberEdit->text().toInt(), ui->tileVFlipCheckBox->isChecked(), checked, ui->tilePalletteSpinBox->value());
         updateBGTileDisplay();
         updateTileDisplay();
         updateTilesetDisplay();
@@ -455,7 +381,7 @@ void MainWindow::on_tilePalletteSpinBox_valueChanged(int arg1)
 {
     if(!switching)
     {
-        m_Tilesets[ui->chapterSpinBox->value()-1].setActiveTileData(ui->tileNumberEdit->text().toInt()-0x80, ui->tileVFlipCheckBox->isChecked(), ui->tileHFlipCheckBox->isChecked(), arg1);
+        m_Tileset.setActiveTileData(ui->tileNumberEdit->text().toInt(), ui->tileVFlipCheckBox->isChecked(), ui->tileHFlipCheckBox->isChecked(), arg1);
         updateBGTileDisplay(false);
         updateTileDisplay();
         updateTilesetDisplay();
@@ -465,7 +391,7 @@ void MainWindow::on_tilePalletteSpinBox_valueChanged(int arg1)
 
 void MainWindow::on_actionUndo_triggered()
 {
-     m_Tilesets[ui->chapterSpinBox->value()-1].undoLastEdit();
+     m_Tileset.undoLastEdit();
      updateBGTilesetDisplay();
      updateTilesetDisplay();
      updateBGTileDisplay();
@@ -474,7 +400,7 @@ void MainWindow::on_actionUndo_triggered()
 
 void MainWindow::on_actionRedo_triggered()
 {
-    m_Tilesets[ui->chapterSpinBox->value()-1].redoLastEdit();
+    m_Tileset.redoLastEdit();
     updateBGTilesetDisplay();
     updateTilesetDisplay();
     updateBGTileDisplay();
@@ -494,6 +420,30 @@ std::vector<uchar> getDataFromBinaryFile(QString filename)
     return tileset_data;
 }
 
+
+
+void MainWindow::quickOpen(const QString &tilesetPath, const QString &tilesPath, const QString &palettePath)
+{
+    if (QFile::exists(tilesetPath) && QFile::exists(tilesPath) && QFile::exists(palettePath)) {
+        std::vector<uchar> tilesetData = getDataFromBinaryFile(tilesetPath);
+        std::vector<uchar> tileData = getDataFromBinaryFile(tilesPath);
+        std::vector<uchar> paletteData = getDataFromBinaryFile(palettePath);
+        m_Tileset = BGTileSet(tilesetData, tileData, paletteData, 256, 144, 2, 0x11B, 0, 0x20FE);
+        ui->tileSetLabel->setEnabled(true);
+        ui->zoomBGTileSpinBox->setEnabled(true);
+        ui->actionExport->setEnabled(true);
+        ui->actionHighlight_Same_BG_Tile->setEnabled(true);
+        ui->actionRedo->setEnabled(true);
+        ui->actionUndo->setEnabled(true);
+        ui->actionExport_PNG->setEnabled(true);
+        updateDisplayData();
+        updatePaletteDisplay();
+        updateDisplayData();
+        ui->tileSetLabel->setEnabled(true);
+    }
+}
+
+
 void MainWindow::on_actionOpen_From_Files_triggered()
 {
     OpenDirDialog opendir;
@@ -502,28 +452,15 @@ void MainWindow::on_actionOpen_From_Files_triggered()
         std::vector<uchar> tilesetData = getDataFromBinaryFile(opendir.getTileSetFile());
         std::vector<uchar> tileData = getDataFromBinaryFile(opendir.getTilesFile());
         std::vector<uchar> paletteData = getDataFromBinaryFile(opendir.getPaletteFile());
-        if(opendir.getExtraTilesFile() != "") {
-            std::vector<uchar> extraTileData = getDataFromBinaryFile(opendir.getExtraTilesFile());
-            m_Tilesets.push_back(BGTileSet(&tilesetData[0], tilesetData.size(),
-                    &tileData[0], tileData.size(), &paletteData[0], &extraTileData[0], extraTileData.size()));
-        } else {
-            m_Tilesets.push_back(BGTileSet(&tilesetData[0], tilesetData.size(),
-                &tileData[0], tileData.size(), &paletteData[0]));
-        }
-        ui->chapterSetButton->setEnabled(true);
-        ui->chapterSetButton->setEnabled(true);
+        m_Tileset = BGTileSet(tilesetData, tileData, paletteData, 256, 144, 2, 0x11B, 0, 0x20FE);
         ui->tileSetLabel->setEnabled(true);
-        ui->chapterSpinBox->setEnabled(true);
-        ui->chapterSpinBox->setMaximum(m_Tilesets.size());
-        ui->chapterSpinBox->setValue(m_Tilesets.size());
-        ui->chapterSetButton->setEnabled(true);
         ui->zoomBGTileSpinBox->setEnabled(true);
         ui->actionExport->setEnabled(true);
         ui->actionHighlight_Same_BG_Tile->setEnabled(true);
         ui->actionRedo->setEnabled(true);
         ui->actionUndo->setEnabled(true);
         ui->actionExport_PNG->setEnabled(true);
-        updateChapterData();
+        updateDisplayData();
         updatePaletteDisplay();
     }
 }
@@ -534,7 +471,7 @@ void MainWindow::on_actionExport_PNG_triggered()
     if (filename != "") {
         QFile file(filename);
         if (file.open(QIODevice::WriteOnly)) {
-            m_Tilesets[ui->chapterSpinBox->value()-1].getTileSetPixmap(1, false).save(&file, "PNG");
+            m_Tileset.getTileSetPixmap(1, false).save(&file, "PNG");
             QMessageBox::information(this, tr("Success"), tr("Image exported to ") + filename);
         } else {
             QMessageBox::warning(this, tr("Error opening file"),tr("Could not open ") + filename + tr(" for writing."));

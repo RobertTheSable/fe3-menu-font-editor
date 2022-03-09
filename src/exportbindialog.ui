@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>242</height>
+    <height>188</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,20 +19,6 @@
   <layout class="QGridLayout" name="gridLayout_2">
    <item row="0" column="0">
     <layout class="QGridLayout" name="gridLayout">
-     <item row="0" column="0">
-      <widget class="QLineEdit" name="directoryLineEdit">
-       <property name="readOnly">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QPushButton" name="pushButton">
-       <property name="text">
-        <string>Choose Directory</string>
-       </property>
-      </widget>
-     </item>
      <item row="1" column="0">
       <widget class="QLineEdit" name="tileSetLineEdit">
        <property name="enabled">
@@ -43,16 +29,13 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="1">
-      <widget class="QCheckBox" name="tilesetCheckBox">
+     <item row="3" column="0">
+      <widget class="QLineEdit" name="paletteLineEdit">
        <property name="enabled">
         <bool>false</bool>
        </property>
        <property name="text">
-        <string>Export Tileset</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
+        <string>palette.bin</string>
        </property>
       </widget>
      </item>
@@ -66,26 +49,10 @@
        </property>
       </widget>
      </item>
-     <item row="2" column="1">
-      <widget class="QCheckBox" name="tilesCheckBox">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="text">
-        <string>Export Tiles</string>
-       </property>
-       <property name="checked">
+     <item row="0" column="0">
+      <widget class="QLineEdit" name="directoryLineEdit">
+       <property name="readOnly">
         <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="0">
-      <widget class="QLineEdit" name="paletteLineEdit">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="text">
-        <string>palette.bin</string>
        </property>
       </widget>
      </item>
@@ -102,23 +69,36 @@
        </property>
       </widget>
      </item>
-     <item row="4" column="0">
-      <widget class="QLineEdit" name="extraTilesLineEdit">
+     <item row="1" column="1">
+      <widget class="QCheckBox" name="tilesetCheckBox">
        <property name="enabled">
         <bool>false</bool>
        </property>
        <property name="text">
-        <string>extratiles.dat</string>
+        <string>Export Tileset</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
        </property>
       </widget>
      </item>
-     <item row="4" column="1">
-      <widget class="QCheckBox" name="extraTilesCheckBox">
+     <item row="0" column="1">
+      <widget class="QPushButton" name="pushButton">
+       <property name="text">
+        <string>Choose Directory</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QCheckBox" name="tilesCheckBox">
        <property name="enabled">
         <bool>false</bool>
        </property>
        <property name="text">
-        <string>Export Extra Tiles</string>
+        <string>Export Tiles</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
        </property>
       </widget>
      </item>

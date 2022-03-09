@@ -9,7 +9,7 @@ CONFIG   += c++11
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = FE5TileMap
+TARGET = FETileMapBuilder
 TEMPLATE = app
 
 # The following define makes your compiler emit warnings if you use
@@ -27,15 +27,13 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-        fecompress.cpp \
         tilesetlabel.cpp \
         bgtileset.cpp \
         addresser/addresser.cpp \
-    exportbindialog.cpp \
-    opendirdialog.cpp
+        exportbindialog.cpp \
+        opendirdialog.cpp
 
 HEADERS += \
-    fecompress.h \
     tilesetlabel.h \
     bgtileset.h \
     mainwindow.h \

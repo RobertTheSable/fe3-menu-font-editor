@@ -19,6 +19,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
+    void quickOpen(const QString &tilesetPath, const QString &tilesPath, const QString &palettePath);
 public slots:
     void show();
 private slots:
@@ -51,11 +52,10 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    std::vector<BGTileSet> m_Tilesets;
+    BGTileSet m_Tileset;
     RomMap m_RomMap;
-    int current_chapter;
     //int active_tile_x, active_tile_y;
-    void updateChapterData();
+    void updateDisplayData();
     void updateTileDisplay();
     void updateBGTileDisplay(bool reload = true);
     void updateTilesetDisplay();

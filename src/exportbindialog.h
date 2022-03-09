@@ -21,9 +21,7 @@ public:
     QString getTileset_bin() const;
     QString getTiles_bin() const;
     QString getPalette_bin() const;
-    QString getExtra_tiles_bin() const;
     bool getSaveAddresses() const;
-    void setExportExtraTiles(bool value);
 
 private slots:
     void on_pushButton_clicked();
@@ -38,7 +36,6 @@ private:
     QString tileset_bin;
     QString tiles_bin;
     QString palette_bin;
-    QString extra_tiles_bin;
     bool saveAddresses;
     bool exportExtraTiles;
 };
