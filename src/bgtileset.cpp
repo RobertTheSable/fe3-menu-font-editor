@@ -1,5 +1,4 @@
 #include "bgtileset.h"
-#include "fecompress.h"
 #include "addresser/addresser.h"
 #include <QPainter>
 #include <cctype>
