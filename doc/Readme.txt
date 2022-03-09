@@ -31,8 +31,32 @@
         This is intentional. The default menu tileset has an uneven number
         of tiles, so I added 5 "fake" tiles to the end to make the display
         cleaner.
+        
+5. Detailed usage.
+    There are 3 sections of the program window to cover:
+    
+    1. Tileset Display - the big section on the left. This displayes
+    the fully tileset. Clicking on a tile here will bring it into the
+    active tile editor. 
+    
+    2. Active tile editor - Here you can edit the data of the 
+    currently selected tile. The full 16x16 tile is shown in the top
+    left, and you can click on the component backround tiles to bring
+    one of them into focus for editing. The index of the curent background 
+    tile is displayed to the right, alongside constols for the current 
+    palette and vertical/horizontal flip.
+    The current background tile is displayed below. Below that is the
+    palette display. Here you can edit the pixels of the current 
+    background tile. To change the color of a pixel, click on the desired 
+    color in the palette display, then click on the pixel in the tile display
+    to change its color.
+    
+    3. Backround Tileset Display - displays all of the background tiles 
+    available in the current tileset. Double click on a tile here to set
+    it as the active tile. You can also click and drag tiles onto another
+    tile to copy its data.
 
-5. Inserting/Extracting Files
+6. Inserting/Extracting Files
     The program needs 3 files, and also exports the same 3 files:
     1. tileset.dat - the tileset of 8x16 glyphs used for the menu font. 
         In an unmodified ROM, this data is located at $8b9af8.
