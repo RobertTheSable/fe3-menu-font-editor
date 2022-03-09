@@ -35,8 +35,8 @@
 5. Detailed usage.
     There are 3 sections of the program window to cover:
     
-    1. Tileset Display - the big section on the left. This displayes
-    the fully tileset. Clicking on a tile here will bring it into the
+    1. Tileset Display - the big section on the left. This displays
+    the full tileset. Clicking on a tile here will bring it into the
     active tile editor. 
     
     2. Active tile editor - Here you can edit the data of the 
