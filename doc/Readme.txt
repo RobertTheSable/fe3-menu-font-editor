@@ -40,7 +40,7 @@
     active tile editor. 
     
     2. Active tile editor - Here you can edit the data of the 
-    currently selected tile. The full 16x16 tile is shown in the top
+    currently selected tile. The full 8x16 tile is shown in the top
     left, and you can click on the component backround tiles to bring
     one of them into focus for editing. The index of the curent background 
     tile is displayed to the right, alongside constols for the current 
