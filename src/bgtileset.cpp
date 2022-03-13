@@ -13,7 +13,7 @@ BGTileSet::BGTileSet(
         const std::vector<uchar>& pallete_data,
         int width,
         int height,
-        int bitDepth,
+        unsigned int bitDepth,
         int tileCount,
         int paletteIndex,
         unsigned short defaultTile
@@ -115,16 +115,16 @@ void BGTileSet::generateDefaulPalettes()
 {
     const char* defaultPalette = "resource/palettes.bin";
     std::ifstream inFile(defaultPalette, std::ios::in|std::ios::binary);
-    for(int j = 0; j< palettes.size(); j++)
+    for (auto &palette: palettes)
     {
-        for(int i = 0; i< palettes[j].size(); i++)
+        for (auto &color: palette)
         {
-            unsigned short color;
-            inFile.read((char *)&color,sizeof(short));
-            int blue = (color&0x7C00) >> 10;
-            int green =(color&0x3E0) >> 5;
-            int red = (color&0x1F);
-            palettes[j][i] = QColor(red<<3, green<<3, blue<<3);
+            ushort snesColor;
+            inFile.read((char *)&snesColor,sizeof(short));
+            int blue = (snesColor&0x7C00) >> 10;
+            int green =(snesColor&0x3E0) >> 5;
+            int red = (snesColor&0x1F);
+            color = QColor(red<<3, green<<3, blue<<3);
             //cout << hex << color[i] << endl;
         }
     }
@@ -348,7 +348,7 @@ QPixmap BGTileSet::getPalettePixmap(uint palette_num, int scale)
     {
         QPainter p(&pix);
         //unsigned short* current_palette = palettes[palette_num];
-        for(int i = 0; i < palettes[i].size(); i++)
+        for(uint i = 0; i < palettes[i].size(); i++)
         {
             int x = (i%8)*8*scale;
             int y = (i/8)*8*scale;
@@ -750,29 +750,25 @@ void BGTileSet::redoLastEdit()
 
 void BGTileSet::exportData(int mode, uchar *&dest)
 {
-    switch(mode){
-    case TILESET_MODE:
+    if (mode == TILESET_MODE ) {
         std::copy(TileSet.begin(), TileSet.end(), dest);
-        break;
-    case TILE_MODE:
+    } else if (mode == TILE_MODE) {
         std::copy(BGTileData.begin(), BGTileData.end(), dest);
-        break;
-        break;
-    case PALETTE_MODE:
-        for(int pal_num = 0; pal_num < palettes.size(); pal_num++)
+    } else if (mode == PALETTE_MODE) {
+        int pal_num = 0;
+        for (auto& palette: palettes)
         {
-            int pal_index = pal_num*palettes[pal_num].size()*2;
-            for(int color_num = 0; color_num < palettes[pal_num].size()*2; color_num+=2)
+            int pal_index = (pal_num++)*palette.size()*2;
+            int color_num = 0;
+            for (auto& rgb888olor: palette)
             {
                 int red, blue, green;
-                palettes[pal_num][color_num/2].getRgb(&red, &green, &blue);
+                rgb888olor.getRgb(&red, &green, &blue);
                 ushort color = ((blue<<7)&0x7C00) | ((green << 2)&0x3E0) | ((red>>3)&0x1F);
                 dest[pal_index + color_num] = color&0xFF;
                 dest[pal_index + color_num + 1] = color>>8;
+                color_num+=2;
             }
         }
-        break;
-    default:
-        break;
-    };
+    }
 }

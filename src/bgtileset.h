@@ -26,7 +26,7 @@ private:
     std::vector<uchar> BGTileData;
     std::vector<std::vector<QColor>> palettes;
     unsigned int m_iTilesetAddress, m_iBGTilesAddress, m_iPaletteAddress;
-    int m_BitDepth;
+    unsigned int m_BitDepth;
     int tWidth, tHeight;
     unsigned int m_TilesetSize;
     unsigned short m_DefaultTile;
@@ -47,7 +47,7 @@ public:
         const std::vector<uchar>& pallete_data,
         int width,
         int height,
-        int bitDepth,
+        unsigned int bitDepth,
         int tileCount,
         int paletteIndex,
         unsigned short defaultTile
